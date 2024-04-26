@@ -31,8 +31,7 @@ func main() {
 
 	log := setupLogger(cfg.Env)
 
-	log.Info("starting application", slog.String("env", cfg.Env))
-	// TODO: initialize logger
+	log.Info("starting application")
 
 	// TODO: Initialize application(app)
 
