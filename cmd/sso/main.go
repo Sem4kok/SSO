@@ -1,6 +1,7 @@
 package main
 
 import (
+	"SSO/internal/app"
 	"SSO/internal/config"
 	"log/slog"
 	"os"
@@ -27,13 +28,27 @@ const (
 // return response's to Service layer
 
 func main() {
+	// Get config from file.
 	cfg := config.Load()
 
+	// Initialize logger.
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting application")
 
-	// TODO: Initialize application(app)
+	// Initialize application.
+	application := app.New(
+		log,
+		cfg.GRPC.Port,
+		cfg.StoragePath,
+		cfg.TokenTTL,
+	)
+
+	// Starts server
+	// If server hasn't run then panic
+	if err := application.GRPCServer.Run(); err != nil {
+		panic("server hasn't run")
+	}
 
 	// TODO: start gRPC-server app
 }
