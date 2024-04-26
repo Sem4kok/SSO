@@ -1,5 +1,10 @@
 package main
 
+import (
+	"SSO/internal/config"
+	"fmt"
+)
+
 // project layer's schema
 // --------------------------------
 // 1) Transport layer.
@@ -15,7 +20,9 @@ package main
 // return response's to Service layer
 
 func main() {
-	// TODO: initialize configuration object
+	cfg := config.Load()
+
+	fmt.Println(cfg)
 
 	// TODO: initialize logger
 

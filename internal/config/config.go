@@ -35,7 +35,7 @@ func Load() *Config {
 
 	// decode config file into struct Config
 	var cfg Config
-	if err := cleanenv.ReadConfig(path, cfg); err != nil {
+	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
 		panic("failed ro read config: " + err.Error())
 	}
 
