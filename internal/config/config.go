@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"github.com/ilyakaznacheev/cleanenv"
 	"os"
 	"time"
 )
@@ -19,8 +20,26 @@ type GRPCConfig struct {
 }
 
 func Load() *Config {
-	// TODO: implement config parsing from file
-	return nil
+	// get path to config.yaml
+	// if it hasn't specified then panic
+	path := getConfigPath()
+	if path == "" {
+		panic("invalid path to config file")
+	}
+
+	// check for file-existing (config.yaml)
+	// if it isn't then panic
+	if _, err := os.Stat(path); err != nil {
+		panic("config file with specified path: " + path + " does not exist")
+	}
+
+	// decode config file into struct Config
+	var cfg Config
+	if err := cleanenv.ReadConfig(path, cfg); err != nil {
+		panic("failed ro read config: " + err.Error())
+	}
+
+	return &cfg
 }
 
 // getConfigPath return path to config
