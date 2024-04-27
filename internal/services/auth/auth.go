@@ -2,9 +2,16 @@ package auth
 
 import (
 	"SSO/internal/domain/models"
+	"SSO/internal/lib/logger/sl"
 	"context"
+	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"time"
+)
+
+const (
+	emptyValue = 0
 )
 
 type Auth struct {
@@ -15,6 +22,7 @@ type Auth struct {
 	tokenTTL     time.Duration
 }
 
+// UserSaver returns userID of new User
 type UserSaver interface {
 	SaveUser(
 		ctx context.Context,
@@ -50,14 +58,40 @@ func New(
 	}
 }
 
-// Register method of Auth registers new user
+// RegisterNewUser method of Auth registers new user
 // Returns userID, error if there is error
-func (a *Auth) Register(
+func (a *Auth) RegisterNewUser(
 	ctx context.Context,
 	email string,
 	password string,
 ) (int64, error) {
-	panic("implement me")
+	const op = "auth.RegisterNewUser"
+
+	// give some setting to logger (about operation)
+	log := a.log.With(
+		slog.String("operation", op),
+		slog.String("email", email),
+	)
+
+	// before send pass into storage it must be salted.
+	// before send salted it must be hashed
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 21)
+	if err != nil {
+		log.Error("password haven't been hashed, abort.", sl.Err(err))
+
+		return emptyValue, fmt.Errorf("%s : %w", op, err)
+	}
+
+	// save hashed and salted user password into storage
+	userID, err := a.userSaver.SaveUser(ctx, email, passwordHash)
+	if err != nil {
+		log.Info("user haven't reached storage.", sl.Err(err))
+
+		return emptyValue, fmt.Errorf("%s: %w", op, err)
+	}
+
+	log.Info("user has been registered")
+	return userID, nil
 }
 
 // Login method of Auth try to log in
