@@ -5,6 +5,8 @@ import (
 	"SSO/internal/config"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
@@ -46,11 +48,28 @@ func main() {
 
 	// Starts server
 	// If server hasn't run then panic
-	if err := application.GRPCServer.Run(); err != nil {
-		panic("server hasn't run")
-	}
+	go func() {
+		if err := application.GRPCServer.Run(); err != nil {
+			panic("server hasn't run")
+		}
+	}()
+
+	// graceful shutdown if interrupt
+	signChan := make(chan os.Signal)
+	signal.Notify(signChan, syscall.SIGTERM, syscall.SIGINT)
+
+	// wait for reading from channel.
+	// channel needed in interrupt signal
+	sign := <-signChan
+
+	log.Info("application starting to stop", slog.String("signal", sign.String()))
+
+	// Graceful shutdown
+	application.GRPCServer.Stop()
 
 	// TODO: start gRPC-server app
+
+	log.Info("application has been stopped")
 }
 
 // setupLogger will choose logger setup
