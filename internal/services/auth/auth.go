@@ -73,7 +73,7 @@ func (a *Auth) RegisterNewUser(
 	email string,
 	password string,
 ) (int64, error) {
-	const op = "auth.RegisterNewUser"
+	const op = "Auth.RegisterNewUser"
 
 	// give some setting to logger (about operation)
 	log := a.log.With(
@@ -169,5 +169,22 @@ func (a *Auth) IsAdmin(
 	userID int64,
 	appID int32,
 ) (bool, error) {
-	panic("implement me")
+	const op = "Auth.IsAdmin"
+
+	log := a.log.With(
+		slog.String("operation", op),
+		slog.Int64("user_id", userID),
+	)
+
+	// check for administrator root
+	isAdmin, err := a.userProvider.IsAdmin(ctx, userID)
+	if err != nil {
+		log.Info("problem with user checking", sl.Err(err))
+
+		return false, fmt.Errorf("%s : %w", op, err)
+	}
+
+	log.Info("user has been checked", slog.Bool("admin", isAdmin))
+
+	return isAdmin, nil
 }
