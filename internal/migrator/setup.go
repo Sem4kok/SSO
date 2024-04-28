@@ -15,11 +15,17 @@ const (
 
 // SetupMigrator returns MigratorSetup
 func SetupMigrator() (*MigratorSetup, error) {
+	storagePath := flag.String("storage_path", "", "Path to storage")
+	migrationsPath := flag.String("migrations_path", "", "Path to migrations")
+	migrationsTable := flag.String("migrations_table", "", "Migrations table name")
+	gooseDriver := flag.String("goose_driver", "", "Goose database driver")
+	flag.Parse()
+
 	migratorStp := &MigratorSetup{
-		StoragePath:     getPath(StoragePath),
-		MigrationsPath:  getPath(MigrationsPath),
-		MigrationsTable: getPath(MigrationsTable),
-		GooseDriver:     getPath(GooseDriver),
+		StoragePath:     getPath(*storagePath, StoragePath),
+		MigrationsPath:  getPath(*migrationsPath, MigrationsPath),
+		MigrationsTable: getPath(*migrationsTable, MigrationsTable),
+		GooseDriver:     getPath(*gooseDriver, GooseDriver),
 	}
 
 	switch "" {
@@ -27,8 +33,8 @@ func SetupMigrator() (*MigratorSetup, error) {
 		return nil, fmt.Errorf("migration path must be specified")
 	case migratorStp.StoragePath:
 		return nil, fmt.Errorf("storage path must be specified")
-	case migratorStp.MigrationsTable:
-		return nil, fmt.Errorf("migrations table must be specified")
+	//case migratorStp.MigrationsTable:
+	//	return nil, fmt.Errorf("migrations table must be specified")
 	case migratorStp.GooseDriver:
 		return nil, fmt.Errorf("goose driver must be specified")
 
@@ -38,26 +44,23 @@ func SetupMigrator() (*MigratorSetup, error) {
 }
 
 // getPath can parse flag > env > default
-func getPath(argument int) string {
-	var flagName, env, path string
+func getPath(argument string, argType int) string {
+	var env string
 
-	switch argument {
+	switch argType {
 	case StoragePath:
-		flagName, env = "storage_path", "STORAGE_PATH"
+		env = "STORAGE_PATH"
 	case MigrationsPath:
-		flagName, env = "migrations_path", "MIGRATIONS_PATH"
+		env = "MIGRATIONS_PATH"
 	case MigrationsTable:
-		flagName, env = "migrations_table", "MIGRATIONS_TABLE"
+		env = "MIGRATIONS_TABLE"
 	case GooseDriver:
-		flagName, env = "goose_driver", "GOOSE_DRIVER"
+		env = "GOOSE_DRIVER"
 	}
 
-	flag.StringVar(&path, flagName, "", "")
-	flag.Parse()
-
-	if path == "" {
-		path = os.Getenv(env)
+	if argument == "" {
+		argument = os.Getenv(env)
 	}
 
-	return path
+	return argument
 }
