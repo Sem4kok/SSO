@@ -2,8 +2,11 @@ package auth
 
 import (
 	"SSO/internal/domain/models"
+	"SSO/internal/lib/jwt"
 	"SSO/internal/lib/logger/sl"
+	"SSO/internal/storage"
 	"context"
+	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
@@ -11,7 +14,12 @@ import (
 )
 
 const (
-	emptyValue = 0
+	emptyValue       = 0
+	emptyValueString = ""
+)
+
+var (
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
 type Auth struct {
@@ -33,7 +41,7 @@ type UserSaver interface {
 
 // UserProvider implements place where we store User's
 type UserProvider interface {
-	User(ctx context.Context, email string) (userID int64, err error)
+	User(ctx context.Context, email string) (user *models.User, err error)
 	IsAdmin(ctx context.Context, userID int64) (bool, error)
 }
 
@@ -100,8 +108,60 @@ func (a *Auth) Login(
 	email string,
 	password string,
 	appID int32,
-) (int64, error) {
-	panic("implement me")
+) (string, error) {
+	const op = "Auth.Login"
+
+	log := a.log.With(
+		slog.String("operation", op),
+		slog.String("email", email),
+	)
+
+	// check for user existing in db
+	user, err := a.userProvider.User(ctx, email)
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			log.Warn("user not found", sl.Err(err))
+
+			return emptyValueString, fmt.Errorf("%s : %w", op, ErrInvalidCredentials)
+		}
+
+		log.Error("failed to get user", sl.Err(err))
+
+		return emptyValueString, fmt.Errorf("%s : %w", op, err)
+	}
+
+	// compare two passwords (in storage with user input)
+	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
+		log.Info("invalid credential", sl.Err(err))
+
+		return emptyValueString, fmt.Errorf("%s : %w", op, ErrInvalidCredentials)
+	}
+
+	// get application
+	app, err := a.appProvider.App(ctx, appID)
+	if err != nil {
+		if errors.Is(err, storage.ErrAppNotFound) {
+			log.Info("application doesn't exist.", sl.Err(err))
+
+			return emptyValueString, fmt.Errorf("%s : %w", op, err)
+		}
+
+		log.Info("failed to connect to app", sl.Err(err))
+
+		return emptyValueString, fmt.Errorf("%s : %w", op, err)
+	}
+
+	log.Info("user logged in successfully.")
+
+	// generate JWT-authorization token
+	token, err := jwt.CreateToken(app, *user, a.tokenTTL)
+	if err != nil {
+		log.Info("failed to get JWT token", sl.Err(err))
+
+		return emptyValueString, fmt.Errorf("%s : %w", op, err)
+	}
+
+	return token, err
 }
 
 func (a *Auth) IsAdmin(
