@@ -1,9 +1,14 @@
 package migrator
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
+)
+
+var (
+	ErrorMigrationTableEmpty = errors.New("migrations table must be specified")
 )
 
 const (
@@ -33,8 +38,8 @@ func SetupMigrator() (*MigratorSetup, error) {
 		return nil, fmt.Errorf("migration path must be specified")
 	case migratorStp.StoragePath:
 		return nil, fmt.Errorf("storage path must be specified")
-	//case migratorStp.MigrationsTable:
-	//	return nil, fmt.Errorf("migrations table must be specified")
+	case migratorStp.MigrationsTable:
+		return nil, ErrorMigrationTableEmpty
 	case migratorStp.GooseDriver:
 		return nil, fmt.Errorf("goose driver must be specified")
 
