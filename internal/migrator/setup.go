@@ -10,6 +10,7 @@ const (
 	StoragePath     = 1
 	MigrationsPath  = 2
 	MigrationsTable = 3
+	GooseDriver     = 4
 )
 
 // SetupMigrator returns MigratorSetup
@@ -18,6 +19,7 @@ func SetupMigrator() (*MigratorSetup, error) {
 		StoragePath:     getPath(StoragePath),
 		MigrationsPath:  getPath(MigrationsPath),
 		MigrationsTable: getPath(MigrationsTable),
+		GooseDriver:     getPath(GooseDriver),
 	}
 
 	switch "" {
@@ -27,6 +29,9 @@ func SetupMigrator() (*MigratorSetup, error) {
 		return nil, fmt.Errorf("storage path must be specified")
 	case migratorStp.MigrationsTable:
 		return nil, fmt.Errorf("migrations table must be specified")
+	case migratorStp.GooseDriver:
+		return nil, fmt.Errorf("goose driver must be specified")
+
 	}
 
 	return migratorStp, nil
@@ -43,6 +48,8 @@ func getPath(argument int) string {
 		flagName, env = "migrations_path", "MIGRATIONS_PATH"
 	case MigrationsTable:
 		flagName, env = "migrations_table", "MIGRATIONS_TABLE"
+	case GooseDriver:
+		flagName, env = "goose_driver", "GOOSE_DRIVER"
 	}
 
 	flag.StringVar(&path, flagName, "", "")
