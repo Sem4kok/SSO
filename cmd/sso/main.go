@@ -1,9 +1,12 @@
 package main
 
 import (
+	"SSO/internal/app"
 	"SSO/internal/config"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
@@ -27,16 +30,46 @@ const (
 // return response's to Service layer
 
 func main() {
+	// Get config from file.
 	cfg := config.Load()
 
+	// Initialize logger.
 	log := setupLogger(cfg.Env)
 
-	log.Info("starting application", slog.String("env", cfg.Env))
-	// TODO: initialize logger
+	log.Info("starting application")
 
-	// TODO: Initialize application(app)
+	// Initialize application.
+	application := app.New(
+		log,
+		cfg.GRPC.Port,
+		cfg.StoragePath,
+		cfg.TokenTTL,
+	)
+
+	// Starts server
+	// If server hasn't run then panic
+	go func() {
+		if err := application.GRPCServer.Run(); err != nil {
+			panic("server hasn't run")
+		}
+	}()
+
+	// graceful shutdown if interrupt
+	signChan := make(chan os.Signal)
+	signal.Notify(signChan, syscall.SIGTERM, syscall.SIGINT)
+
+	// wait for reading from channel.
+	// channel needed in interrupt signal
+	sign := <-signChan
+
+	log.Info("application starting to stop", slog.String("signal", sign.String()))
+
+	// Graceful shutdown
+	application.GRPCServer.Stop()
 
 	// TODO: start gRPC-server app
+
+	log.Info("application has been stopped")
 }
 
 // setupLogger will choose logger setup
