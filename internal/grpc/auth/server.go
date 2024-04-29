@@ -2,7 +2,9 @@ package auth
 
 import (
 	ssov1 "SSO/contract/gen/go/sso"
+	"SSO/internal/storage"
 	"context"
+	"errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -44,12 +46,14 @@ func (s *serverAPI) Register(
 
 	userID, err := s.auth.RegisterUser(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
+		if errors.Is(err, storage.ErrUserAlreadyExists) {
+			return nil, status.Error(codes.AlreadyExists, "user already exists")
+		}
 
-		// TODO implement
-		return nil, status.Error(codes.Internal, "internal msg")
+		return nil, status.Error(codes.Internal, "user hasn't registered")
 	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+	return &ssov1.RegisterResponse{UserId: userID}, nil
 }
 
 func (s *serverAPI) Login(
@@ -61,14 +65,16 @@ func (s *serverAPI) Login(
 	}
 
 	// if validation pass successful
-	userID, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), req.GetAppId())
+	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), req.GetAppId())
 	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return nil, status.Error(codes.NotFound, "user with such id doesn't exists")
+		}
 
-		// TODO implement
-		return nil, status.Error(codes.Internal, "internal msg")
+		return nil, status.Error(codes.Internal, "user hasn't login")
 	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+	return &ssov1.LoginResponse{Token: token}, nil
 }
 
 func (s *serverAPI) IsAdmin(ctx context.Context,
@@ -80,12 +86,15 @@ func (s *serverAPI) IsAdmin(ctx context.Context,
 
 	isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
 	if err != nil {
+		if errors.Is(err, storage.ErrAppNotFound) {
+			return nil, status.Error(codes.NotFound, "app with such id doesn't exists")
 
-		// TODO implement
+		}
+
 		return nil, status.Error(codes.Internal, "internal msg")
 	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method IsAdmin not implemented")
+	return &ssov1.IsAdminResponse{IsAdmin: isAdmin}, nil
 }
 
 // validateLogin checks for user login input correctly

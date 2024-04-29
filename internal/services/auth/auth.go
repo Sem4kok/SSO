@@ -161,7 +161,7 @@ func (a *Auth) Login(
 		return emptyValueString, fmt.Errorf("%s : %w", op, err)
 	}
 
-	return token, err
+	return token, nil
 }
 
 func (a *Auth) IsAdmin(

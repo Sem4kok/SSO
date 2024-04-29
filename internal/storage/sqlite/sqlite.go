@@ -66,7 +66,7 @@ func (s *Storage) SaveUser(ctx context.Context, email string, passHash []byte) (
 }
 
 // User method of Storage.
-// Implements getting user from database
+// Implements getting user from database (log in)
 func (s *Storage) User(ctx context.Context, email string) (user *models.User, err error) {
 	const op = "sqlite.User"
 
