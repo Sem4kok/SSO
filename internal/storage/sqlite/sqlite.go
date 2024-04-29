@@ -17,6 +17,7 @@ const (
 
 var (
 	emptyUser = &models.User{}
+	emptyApp  = &models.App{}
 )
 
 type Storage struct {
@@ -105,11 +106,39 @@ func (s *Storage) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 	var isAdmin bool
 	if err := row.Scan(&isAdmin); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false, fmt.Errorf("%s : %w", op, storage.ErrAppNotFound)
+			return false, fmt.Errorf("%s : %w", op, storage.ErrUserNotFound)
 		}
 
 		return false, fmt.Errorf("%s : %w", op, err)
 	}
 
 	return isAdmin, nil
+}
+
+func (s *Storage) App(ctx context.Context, appID int32) (models.App, error) {
+	const op = "sqlite.App"
+
+	// prepare query
+	stmt, err := s.db.Prepare("SELECT name, secret FROM apps WHERE id = ?")
+	if err != nil {
+		return *emptyApp, fmt.Errorf("%s : %w", op, err)
+	}
+
+	// exec query
+	row := stmt.QueryRowContext(ctx, appID)
+
+	var name, secret string
+	if err := row.Scan(&name, &secret); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return *emptyApp, fmt.Errorf("%s : %w", op, storage.ErrAppNotFound)
+		}
+
+		return *emptyApp, fmt.Errorf("%s : %w", op, err)
+	}
+
+	return models.App{
+		ID:     appID,
+		Name:   name,
+		Secret: secret,
+	}, nil
 }
