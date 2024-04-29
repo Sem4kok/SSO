@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "sem4kok.sso.v1;ssov1";
+
+service Auth {
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
+  rpc IsAdmin (IsAdminRequest) returns (IsAdminResponse);
+}
+
+// The user is logged in to all applications at once.
+message RegisterRequest {
+  string email = 1; // User email to register.
+  string password = 2; // User password to register.
+}
+
+message RegisterResponse {
+  int64 user_id = 1; // ID of new User.
+}
+
+// User choosing which application he want to log in.
+message LoginRequest {
+  string email = 1; // User email to login.
+  string password = 2; // User password to login.
+  int32 app_id = 3; // ID of the app to login to.
+}
+
+message LoginResponse {
+  string token = 1; // Auth token of the User.
+}
+
+message IsAdminRequest {
+  int64 user_id = 1; // ID of User to validate.
+}
+
+message IsAdminResponse {
+  bool is_admin = 1; // Is User admin.
+}
