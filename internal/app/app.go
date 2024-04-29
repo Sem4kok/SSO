@@ -2,7 +2,7 @@ package app
 
 import (
 	grpcapp "SSO/internal/app/grpc"
-	"SSO/internal/services/grpcauth"
+	"SSO/internal/services/auth"
 	"SSO/internal/storage/sqlite"
 	"log/slog"
 	"time"
@@ -27,9 +27,9 @@ func New(
 
 	// initialize app (auth)
 	// storage realize interfaces
-	app := grpcauth.New(log, storage, storage, storage, tokenTTL)
+	authService := auth.New(log, storage, storage, storage, tokenTTL)
 
-	grpcApp := grpcapp.New(log, port)
+	grpcApp := grpcapp.New(log, authService, port)
 
 	return &App{
 		GRPCServer: grpcApp,

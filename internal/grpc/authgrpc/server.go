@@ -1,4 +1,4 @@
-package auth
+package authgrpc
 
 import (
 	ssov1 "SSO/contract/gen/go/sso"
@@ -19,7 +19,7 @@ type Auth interface {
 	RegisterUser(ctx context.Context,
 		email string,
 		password string,
-	) (userID int64, err error)
+	) (int64, error)
 	IsAdmin(ctx context.Context, userID int64) (isAdmin bool, err error)
 }
 
