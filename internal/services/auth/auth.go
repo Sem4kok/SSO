@@ -83,7 +83,7 @@ func (a *Auth) RegisterUser(
 
 	// before send pass into storage it must be salted.
 	// before send salted it must be hashed
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 21)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
 		log.Error("password haven't been hashed, abort.", sl.Err(err))
 
