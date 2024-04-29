@@ -70,8 +70,8 @@ func (s *Storage) SaveUser(ctx context.Context, email string, passHash []byte) (
 func (s *Storage) User(ctx context.Context, email string) (user *models.User, err error) {
 	const op = "sqlite.User"
 
-	// prepare for exec
-	stmt, err := s.db.Prepare("SELECT * FROM users WHERE (email) VALUES (?)")
+	// prepare query
+	stmt, err := s.db.Prepare("SELECT email, id, pass_hash FROM users WHERE email = ?")
 	if err != nil {
 		return emptyUser, fmt.Errorf("%s : %w", op, err)
 	}
@@ -89,4 +89,27 @@ func (s *Storage) User(ctx context.Context, email string) (user *models.User, er
 	}
 
 	return user, nil
+}
+
+func (s *Storage) IsAdmin(ctx context.Context, userID int64) (bool, error) {
+	const op = "sqlite.IsAdmin"
+
+	// prepare query
+	stmt, err := s.db.Prepare("SELECT is_admin FROM users WHERE id = ?")
+	if err != nil {
+		return false, fmt.Errorf("%s : %w", op, err)
+	}
+
+	row := stmt.QueryRowContext(ctx, userID)
+
+	var isAdmin bool
+	if err := row.Scan(&isAdmin); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, fmt.Errorf("%s : %w", op, storage.ErrAppNotFound)
+		}
+
+		return false, fmt.Errorf("%s : %w", op, err)
+	}
+
+	return isAdmin, nil
 }
