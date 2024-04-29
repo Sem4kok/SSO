@@ -67,8 +67,6 @@ func main() {
 	// Graceful shutdown
 	application.GRPCServer.Stop()
 
-	// TODO: start gRPC-server app
-
 	log.Info("application has been stopped")
 }
 

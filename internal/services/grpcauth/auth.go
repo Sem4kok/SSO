@@ -1,4 +1,4 @@
-package auth
+package grpcauth
 
 import (
 	"SSO/internal/domain/models"
