@@ -86,8 +86,8 @@ func (s *serverAPI) IsAdmin(ctx context.Context,
 
 	isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
 	if err != nil {
-		if errors.Is(err, storage.ErrAppNotFound) {
-			return nil, status.Error(codes.NotFound, "app with such id doesn't exists")
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return nil, status.Error(codes.NotFound, "user with such id doesn't exists")
 
 		}
 
