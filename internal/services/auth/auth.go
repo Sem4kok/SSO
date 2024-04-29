@@ -66,9 +66,9 @@ func New(
 	}
 }
 
-// RegisterNewUser method of Auth registers new user
+// RegisterUser method of Auth registers new user
 // Returns userID, error if there is error
-func (a *Auth) RegisterNewUser(
+func (a *Auth) RegisterUser(
 	ctx context.Context,
 	email string,
 	password string,
@@ -161,13 +161,12 @@ func (a *Auth) Login(
 		return emptyValueString, fmt.Errorf("%s : %w", op, err)
 	}
 
-	return token, err
+	return token, nil
 }
 
 func (a *Auth) IsAdmin(
 	ctx context.Context,
 	userID int64,
-	appID int32,
 ) (bool, error) {
 	const op = "Auth.IsAdmin"
 
