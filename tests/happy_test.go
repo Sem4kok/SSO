@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 const (
@@ -37,10 +38,25 @@ func TestRegisterLogin_Login(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// fixing time when we have logged in
+	loginTime := time.Now()
+	const DeltaSeconds = 1
+
 	jwToken := responseLogin.Token
 	require.NotEmpty(t, jwToken)
 
 	tokenParsed, err := jwt.Parse(jwToken, func(token *jwt.Token) (interface{}, error) {
 		return []byte(appSecret), nil
 	})
+	require.NoError(t, err)
+
+	// check is parsedToken valid
+	jwtClaims, ok := tokenParsed.Claims.(jwt.MapClaims)
+	assert.True(t, ok)
+
+	assert.Equal(t, email, jwtClaims["email"].(string))
+	assert.Equal(t, appID, int(jwtClaims["app_id"].(float64)))
+	assert.Equal(t, responseRep.GetUserId(), int64(jwtClaims["uid"].(float64)))
+	assert.InDelta(t, loginTime.Add(st.Cfg.TokenTTL).Unix(), jwtClaims["exp"].(float64), DeltaSeconds)
+
 }
