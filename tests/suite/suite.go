@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	HOST = "localhost"
+	HOST       = "localhost"
+	ConfigPath = "../config/local_tests.yaml"
 )
 
 type Suite struct {
@@ -27,7 +28,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 
 	// Can be switched into auto-testing in gh-action
 	// just get config_path using env (os.Getenv)
-	cfg := config.LoadByPath("../config/local_tests.yaml")
+	cfg := config.LoadByPath(ConfigPath)
 
 	// creating a context with timeout from config
 	ctx, cancelCtx := context.WithTimeout(context.Background(), cfg.GRPC.Timeout)
