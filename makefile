@@ -11,3 +11,7 @@ protoc:
 
 auth:
 	go run ./cmd/sso/main.go --config=./config/local.yaml
+
+.PHONY: all tests clean
+tests:
+	go test ./tests/
