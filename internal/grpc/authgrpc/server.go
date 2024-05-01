@@ -2,7 +2,7 @@ package authgrpc
 
 import (
 	ssov1 "SSO/contract/gen/go/sso"
-	"SSO/internal/storage"
+	"SSO/internal/services/auth"
 	"context"
 	"errors"
 	"google.golang.org/grpc"
@@ -46,7 +46,7 @@ func (s *serverAPI) Register(
 
 	userID, err := s.auth.RegisterUser(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
-		if errors.Is(err, storage.ErrUserAlreadyExists) {
+		if errors.Is(err, auth.ErrUserAlreadyExists) {
 			return nil, status.Error(codes.AlreadyExists, "user already exists")
 		}
 
@@ -67,8 +67,8 @@ func (s *serverAPI) Login(
 	// if validation pass successful
 	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), req.GetAppId())
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
-			return nil, status.Error(codes.NotFound, "user with such id doesn't exists")
+		if errors.Is(err, auth.ErrInvalidCredentials) {
+			return nil, status.Error(codes.NotFound, "invalid credentials")
 		}
 
 		return nil, status.Error(codes.Internal, "user hasn't login")
@@ -86,8 +86,8 @@ func (s *serverAPI) IsAdmin(ctx context.Context,
 
 	isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
-			return nil, status.Error(codes.NotFound, "user with such id doesn't exists")
+		if errors.Is(err, auth.ErrUserNotFound) {
+			return nil, status.Error(codes.NotFound, "user not found")
 
 		}
 
@@ -108,7 +108,7 @@ func validateLogin(req *ssov1.LoginRequest) error {
 	}
 
 	if req.GetAppId() == emptyValue {
-		return status.Error(codes.InvalidArgument, "app id is required")
+		return status.Error(codes.InvalidArgument, "app_id is required")
 	}
 
 	return nil
@@ -121,7 +121,7 @@ func validateRegister(req *ssov1.RegisterRequest) error {
 	}
 
 	if req.GetPassword() == "" {
-		return status.Error(codes.InvalidArgument, "email is required")
+		return status.Error(codes.InvalidArgument, "password is required")
 	}
 
 	return nil

@@ -20,6 +20,8 @@ const (
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrUserAlreadyExists  = errors.New("user already exists")
+	ErrUserNotFound       = errors.New("user not found")
 )
 
 type Auth struct {
@@ -93,6 +95,12 @@ func (a *Auth) RegisterUser(
 	// save hashed and salted user password into storage
 	userID, err := a.userSaver.SaveUser(ctx, email, passwordHash)
 	if err != nil {
+		if errors.Is(err, storage.ErrUserAlreadyExists) {
+			log.Warn("user already exists", sl.Err(err))
+
+			return emptyValue, fmt.Errorf("%s : %w", op, ErrUserAlreadyExists)
+		}
+
 		log.Info("user haven't reached storage.", sl.Err(err))
 
 		return emptyValue, fmt.Errorf("%s: %w", op, err)
@@ -178,6 +186,12 @@ func (a *Auth) IsAdmin(
 	// check for administrator root
 	isAdmin, err := a.userProvider.IsAdmin(ctx, userID)
 	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			log.Warn("user not found", sl.Err(err))
+
+			return false, fmt.Errorf("%s : %w", op, ErrUserNotFound)
+		}
+
 		log.Info("problem with user checking", sl.Err(err))
 
 		return false, fmt.Errorf("%s : %w", op, err)

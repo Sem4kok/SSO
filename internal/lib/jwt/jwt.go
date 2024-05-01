@@ -23,7 +23,7 @@ func CreateToken(
 	// time, when token will be invalid
 	atClaims["exp"] = time.Now().Add(duration).Unix()
 
-	// sign our token by using SECRET code
+	// sign our token by using SECRET (app) code
 	// by the way our app has this SECRET code
 	tokenString, err := JWT.SignedString([]byte(app.Secret))
 	if err != nil {

@@ -27,15 +27,19 @@ func Load() *Config {
 		panic("invalid path to config file")
 	}
 
+	return LoadByPath(path)
+}
+
+func LoadByPath(configPath string) *Config {
 	// check for file-existing (config.yaml)
 	// if it isn't then panic
-	if _, err := os.Stat(path); err != nil {
-		panic("config file with specified path: " + path + " does not exist")
+	if _, err := os.Stat(configPath); err != nil {
+		panic("config file with specified path: " + configPath + " does not exist")
 	}
 
 	// decode config file into struct Config
 	var cfg Config
-	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		panic("failed ro read config: " + err.Error())
 	}
 
