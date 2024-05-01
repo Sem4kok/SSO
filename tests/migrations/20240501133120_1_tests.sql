@@ -1,9 +1,10 @@
 -- +goose Up
 -- +goose StatementBegin
-SELECT 'up SQL query';
+INSERT INTO apps (id, name, secret)
+VALUES (1, 'test-app', 'test-secret')
+ON CONFLICT DO NOTHING;
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'down SQL query';
 -- +goose StatementEnd
