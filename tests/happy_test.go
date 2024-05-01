@@ -40,5 +40,7 @@ func TestRegisterLogin_Login(t *testing.T) {
 	jwToken := responseLogin.Token
 	require.NotEmpty(t, jwToken)
 
-	tokenParsed, err := jwt.Parse(jwToken, parseSecret)
+	tokenParsed, err := jwt.Parse(jwToken, func(token *jwt.Token) (interface{}, error) {
+		return []byte(appSecret), nil
+	})
 }
