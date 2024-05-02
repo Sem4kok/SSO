@@ -33,21 +33,5 @@ jobs:
       - name: make tests
         run: make tests
 
-  run-tests:
-      needs: start-server
-      runs-on: ubuntu-latest
-
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-
-        - name: Set up Go 1.22
-          uses: actions/setup-go@v5
-          with:
-            go-version: 1.22
-
-        - name: Run tests
-          run: make tests
-
-        - name: Stop server
-          run: kill $(pgrep -f "main.go")
+      - name: Stop server
+        run: kill $(pgrep -f "main.go")
