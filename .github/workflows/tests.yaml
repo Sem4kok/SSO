@@ -22,4 +22,13 @@ jobs:
           go-version: 1.22
 
       - name: make migration
-        run: make
+        run: make migrate
+
+      - name: make TestsMigration
+        run: make migrateTest
+
+      - name: make auth
+        run: make auth
+
+      - name: make tests
+        run: make tests
